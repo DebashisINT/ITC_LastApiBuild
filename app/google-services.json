@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "774354825268",
+    "project_id": "breezefsm--dsm",
+    "storage_bucket": "breezefsm--dsm.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:774354825268:android:13e664f8902d1b52ea9a61",
+        "android_client_info": {
+          "package_name": "com.breezedsm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "774354825268-cb5gg5dm88nuktqi0mbqh19nqslp4ue7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJSQJ8rPUa1uZLzvkylN-YgUQ2dLE2VLg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "774354825268-cb5gg5dm88nuktqi0mbqh19nqslp4ue7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
