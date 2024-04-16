@@ -1175,44 +1175,53 @@ class AddShopFragment : BaseFragment(), View.OnClickListener {
     private fun getAssignedPPListApi(isShopAdded: Boolean, shop_id: String?) {
         //bypass code begin
         if(isShopAdded){
-            println("bypass_tag call getAssignedDDListApi AddshopFragment")
-            getAssignedDDListApi(isShopAdded, shop_id)
+            getAssignedToShopApi(isShopAdded, shop_id)
         }else{
-            //bypass code end
-            val repository = AssignToPPListRepoProvider.provideAssignPPListRepository()
-            progress_wheel.spin()
-            BaseActivity.compositeDisposable.add(
+        //bypass code end
+        val repository = AssignToPPListRepoProvider.provideAssignPPListRepository()
+        progress_wheel.spin()
+        BaseActivity.compositeDisposable.add(
                 repository.assignToPPList(Pref.profile_state)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeOn(Schedulers.io())
-                    .subscribe({ result ->
-                        val response = result as AssignToPPListResponseModel
-                        if (response.status == NetworkConstant.SUCCESS) {
-                            val list = response.assigned_to_pp_list
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe({ result ->
+                            val response = result as AssignToPPListResponseModel
+                            if (response.status == NetworkConstant.SUCCESS) {
+                                val list = response.assigned_to_pp_list
 
-                            if (list != null && list.isNotEmpty()) {
+                                if (list != null && list.isNotEmpty()) {
 
-                                doAsync {
+                                    doAsync {
 
-                                    val assignPPList = AppDatabase.getDBInstance()?.ppListDao()?.getAll()
-                                    if (assignPPList != null)
-                                        AppDatabase.getDBInstance()?.ppListDao()?.delete()
+                                        val assignPPList = AppDatabase.getDBInstance()?.ppListDao()?.getAll()
+                                        if (assignPPList != null)
+                                            AppDatabase.getDBInstance()?.ppListDao()?.delete()
 
-                                    for (i in list.indices) {
-                                        val assignToPP = AssignToPPEntity()
-                                        assignToPP.pp_id = list[i].assigned_to_pp_id
-                                        assignToPP.pp_name = list[i].assigned_to_pp_authorizer_name
-                                        assignToPP.pp_phn_no = list[i].phn_no
-                                        AppDatabase.getDBInstance()?.ppListDao()?.insert(assignToPP)
-                                    }
-
-                                    uiThread {
-                                        progress_wheel.stopSpinning()
-                                        if (!isShopAdded)
-                                            showAssignedToPPDialog(AppDatabase.getDBInstance()?.ppListDao()?.getAll(), addShopData.type)
-                                        else {
-                                            getAssignedDDListApi(isShopAdded, shop_id)
+                                        for (i in list.indices) {
+                                            val assignToPP = AssignToPPEntity()
+                                            assignToPP.pp_id = list[i].assigned_to_pp_id
+                                            assignToPP.pp_name = list[i].assigned_to_pp_authorizer_name
+                                            assignToPP.pp_phn_no = list[i].phn_no
+                                            AppDatabase.getDBInstance()?.ppListDao()?.insert(assignToPP)
                                         }
+
+                                        uiThread {
+                                            progress_wheel.stopSpinning()
+                                            if (!isShopAdded)
+                                                showAssignedToPPDialog(AppDatabase.getDBInstance()?.ppListDao()?.getAll(), addShopData.type)
+                                            else {
+                                                getAssignedDDListApi(isShopAdded, shop_id)
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    progress_wheel.stopSpinning()
+                                    if (!isShopAdded)
+                                        (mContext as DashboardActivity).showSnackMessage(response.message!!)
+                                    else {
+                                        /*if (!TextUtils.isEmpty(shop_id))
+                                            callOtpSentApi(shop_id!!)*/
+                                        showShopVerificationDialog(shop_id!!)
                                     }
                                 }
                             } else {
@@ -1225,28 +1234,18 @@ class AddShopFragment : BaseFragment(), View.OnClickListener {
                                     showShopVerificationDialog(shop_id!!)
                                 }
                             }
-                        } else {
+
+                        }, { error ->
                             progress_wheel.stopSpinning()
                             if (!isShopAdded)
-                                (mContext as DashboardActivity).showSnackMessage(response.message!!)
+                                (mContext as DashboardActivity).showSnackMessage("ERROR")
                             else {
                                 /*if (!TextUtils.isEmpty(shop_id))
                                     callOtpSentApi(shop_id!!)*/
                                 showShopVerificationDialog(shop_id!!)
                             }
-                        }
-
-                    }, { error ->
-                        progress_wheel.stopSpinning()
-                        if (!isShopAdded)
-                            (mContext as DashboardActivity).showSnackMessage("ERROR")
-                        else {
-                            /*if (!TextUtils.isEmpty(shop_id))
-                                callOtpSentApi(shop_id!!)*/
-                            showShopVerificationDialog(shop_id!!)
-                        }
-                    })
-            )
+                        })
+        )
         }
     }
     private fun voiceAttendanceMsg(msg: String) {
@@ -3846,6 +3845,7 @@ class AddShopFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun getAssignedDDListApi(shopAdded: Boolean, shop_id: String?) {
+        Timber.d("tag_itc_check assignToDDList call AddShopFragment")
         val repository = AssignToDDListRepoProvider.provideAssignDDListRepository()
         progress_wheel.spin()
         BaseActivity.compositeDisposable.add(
@@ -3943,6 +3943,7 @@ class AddShopFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun getAssignedToShopApi(shopAdded: Boolean, shop_id: String?) {
+        Timber.d("tag_itc_check getAssignedToShopList call AddShopFragment")
         val repository = TypeListRepoProvider.provideTypeListRepository()
         progress_wheel.spin()
         BaseActivity.compositeDisposable.add(

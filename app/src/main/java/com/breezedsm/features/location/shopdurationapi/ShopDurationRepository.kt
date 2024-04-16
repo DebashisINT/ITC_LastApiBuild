@@ -26,7 +26,6 @@ class ShopDurationRepository(val apiService: ShopDurationApi) {
         if(Pref.IsUpdateVisitDataInTodayTable){
             return apiService.submitShopDurationITC(shopDuration)
         }else{
-            //bypass
             return apiService.submitShopDurationITC(shopDuration)
             //return apiService.submitShopDuration(shopDuration)
         }

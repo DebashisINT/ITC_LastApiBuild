@@ -5301,7 +5301,6 @@ class ShopDetailFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun getAssignedPPListApi(isEdited: Boolean, shop_id: String?) {
-        println("bypass_tag call getAssignedPPListApi check ShopDetailFragment")
         val repository = AssignToPPListRepoProvider.provideAssignPPListRepository()
         progress_wheel.spin()
         BaseActivity.compositeDisposable.add(
@@ -5397,6 +5396,7 @@ class ShopDetailFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun getAssignedDDListApi(edited: Boolean, shop_id: String?) {
+        Timber.d("tag_itc_check assignToDDList call ShopDetailFragment")
         val repository = AssignToDDListRepoProvider.provideAssignDDListRepository()
         progress_wheel.spin()
         BaseActivity.compositeDisposable.add(
@@ -5492,6 +5492,7 @@ class ShopDetailFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun getAssignedToShopApi(edited: Boolean, shop_id: String?) {
+        Timber.d("tag_itc_check getAssignedToShopList call ShopDetailsFragment")
         val repository = TypeListRepoProvider.provideTypeListRepository()
         progress_wheel.spin()
         BaseActivity.compositeDisposable.add(

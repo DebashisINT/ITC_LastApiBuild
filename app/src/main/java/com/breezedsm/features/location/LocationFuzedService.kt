@@ -1077,11 +1077,14 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
         shopCodeListNearby= ArrayList()
 
         if (distance * 1000 > autoRevDistance) {
-            val allShopList = AppDatabase.getDBInstance()!!.addShopEntryDao().all
+            // Rectify inactive shop 26-03-2024 Suman mantis id 27329 begin
+            val allShopList = AppDatabase.getDBInstance()!!.addShopEntryDao().getAllActiveShops()
+            // Rectify inactive shop 26-03-2024 Suman mantis id 27329 end
+            //val allShopList = AppDatabase.getDBInstance()!!.addShopEntryDao().all
+            println("tag_auto_rev size : ${allShopList.size}")
             if (allShopList != null && allShopList.size > 0) {
                 var nearbyAddCount:Int = 0
                 for (i in 0 until allShopList.size) {
-
                     val shopLat: Double = allShopList[i].shopLat
                     val shopLong: Double = allShopList[i].shopLong
                     if (shopLat != null && shopLong != null) {
@@ -2698,7 +2701,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
 
     private fun shouldShopActivityUpdate(): Boolean {
         AppUtils.changeLanguage(this,"en")
-        return if (abs(System.currentTimeMillis() - Pref.prevShopActivityTimeStamp) > 1000 * 60 * 10) {
+        return if (abs(System.currentTimeMillis() - Pref.prevShopActivityTimeStamp) > 1000 * 60 * 14) {
             Pref.prevShopActivityTimeStamp = System.currentTimeMillis()
             changeLocale()
             true
@@ -3312,7 +3315,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
             return
         }
 
-        Timber.d("Location Fuzed Srvice", "isShopActivityUpdating=============> $isShopActivityUpdating")
+        Log.e("Location Fuzed Srvice", "isShopActivityUpdating=============> $isShopActivityUpdating")
 
         if (Pref.user_id.isNullOrEmpty() || isShopActivityUpdating)
             return
