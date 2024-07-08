@@ -85,7 +85,7 @@ import java.util.*
 /**
  * Created by Pratishruti on 26-10-2017.
  */
-
+// Rev 1.0 Suman 06-05-2024 Suman BaseActivity mantis 27335
 open class BaseActivity : AppCompatActivity(), GpsStatusDetector.GpsStatusDetectorCallBack {
 
     private val mRegistry = LifecycleRegistry(this)
@@ -165,7 +165,7 @@ open class BaseActivity : AppCompatActivity(), GpsStatusDetector.GpsStatusDetect
         } /*else
             Pref.isAutoLogout = false*/
 
-//        Pref.isAutoLogout=true
+        //Pref.isAutoLogout=true
         if (Pref.isAutoLogout) {
 
             Pref.isAddAttendence = false
@@ -665,7 +665,13 @@ open class BaseActivity : AppCompatActivity(), GpsStatusDetector.GpsStatusDetect
     }
 
     fun endDay(location: Location) {
-        try{
+        //Suman 03-07-2024 mantis id 27598 begin
+        Pref.DayStartMarked = false
+        Pref.DayEndMarked = false
+
+        calllogoutApi(Pref.user_id!!, Pref.session_token!!)
+
+        /*try{
             var saleValue: String = ""
             var dayst: DaystartDayendRequest = DaystartDayendRequest()
             dayst.user_id = Pref.user_id
@@ -718,7 +724,9 @@ open class BaseActivity : AppCompatActivity(), GpsStatusDetector.GpsStatusDetect
         catch (ex:java.lang.Exception){
             ex.printStackTrace()
             calllogoutApi(Pref.user_id!!, Pref.session_token!!)
-        }
+        }*/
+
+        //Suman 03-07-2024 mantis id 27598 end
 
 
     }
@@ -1504,6 +1512,17 @@ fun isMonitorServiceRunning(): Boolean {
             }
             //End Rev 1.0 Suman 10-07-2023 IsnewShop in api+room mantis id 26537
 
+            // Rev 1.0 Suman 06-05-2024 Suman BaseActivity mantis 27335 begin
+            try {
+                var shopOb = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shopDurationData.shop_id)
+                shopDurationData.shop_lat=shopOb.shopLat.toString()
+                shopDurationData.shop_long=shopOb.shopLong.toString()
+                shopDurationData.shop_addr=shopOb.address.toString()
+            }catch (ex:Exception){
+                ex.printStackTrace()
+            }
+            // Rev 1.0 Suman 06-05-2024 Suman BaseActivity mantis 27335 end
+
             shopDataList.add(shopDurationData)
 
             Timber.d("========SYNC ALL VISITED SHOP DATA (AVERAGE SHOP)=====")
@@ -1703,6 +1722,17 @@ fun isMonitorServiceRunning(): Boolean {
             shopDurationData.isNewShop = 0
         }
         //End Rev 1.0 Suman 10-07-2023 IsnewShop in api+room mantis id 26537
+
+        // Rev 1.0 Suman 06-05-2024 Suman BaseActivity mantis 27335 begin
+        try {
+            var shopOb = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shopDurationData.shop_id)
+            shopDurationData.shop_lat=shopOb.shopLat.toString()
+            shopDurationData.shop_long=shopOb.shopLong.toString()
+            shopDurationData.shop_addr=shopOb.address.toString()
+        }catch (ex:Exception){
+            ex.printStackTrace()
+        }
+        // Rev 1.0 Suman 06-05-2024 Suman BaseActivity mantis 27335 end
 
         shopDataList.add(shopDurationData)
 

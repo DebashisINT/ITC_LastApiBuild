@@ -6,7 +6,7 @@ import com.marcinmoskala.kotlinpreferences.PreferenceHolder
 /**
  * Created by Pratishruti on 08-11-2017.
  */
-
+//Rev 1.0 Suman 03-06-2024 mantis id 27433
 object Pref : PreferenceHolder() {
     var text: String? by bindToPreferenceFieldNullable()
     var num: Int by bindToPreferenceField(0, "SomeIntKey")
@@ -438,4 +438,18 @@ object Pref : PreferenceHolder() {
     var IsAllowZeroRateOrder: Boolean by bindToPreferenceField(false, "IsAllowZeroRateOrder")
     var IsViewMRPInOrder: Boolean by bindToPreferenceField(false, "IsViewMRPInOrder")
 
+    var ShowUserwisePartyWithGeoFence : Boolean by bindToPreferenceField(false, "ShowUserwisePartyWithGeoFence")
+    var ShowUserwisePartyWithCreateOrder : Boolean by bindToPreferenceField(false, "ShowUserwisePartyWithCreateOrder")
+
+    var user_ShopStatus: Boolean by bindToPreferenceField(false, "user_ShopStatus")
+    var IsRouteUpdateForShopUser : Boolean by bindToPreferenceField(true, "IsRouteUpdateForShopUser")
+    var IsShowUserWiseDateWiseOrderInApp : Boolean by bindToPreferenceField(false, "IsShowUserWiseDateWiseOrderInApp")
+
+    //Rev 1.0 Suman 03-06-2024 mantis id 27433 begin
+    var IsOrderEditEnable : Boolean by bindToPreferenceField(false, "IsOrderEditEnable")
+    var IsOrderDeleteEnable : Boolean by bindToPreferenceField(false, "IsOrderDeleteEnable")
+    //Rev 1.0 Suman 03-06-2024 mantis id 27433 end
+
+    var AttendWorkTypeID: String by bindToPreferenceField("", "AttendWorkTypeID")
+    var AttendWorkTypeName: String by bindToPreferenceField("", "AttendWorkTypeName")
 }

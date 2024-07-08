@@ -570,6 +570,20 @@ class AppUtils {
             return formattedDate.toString()
         }
 
+        fun convertToDateLikeOrderFormat(date: String): String {
+            try {
+                val f = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+                val d = f.parse(date)
+                val date = SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH)
+                return date.format(d)
+//            System.out.println("Time: " + time.format(d))
+            } catch (e: ParseException) {
+                e.printStackTrace()
+                return getCurrentDate()
+            }
+
+        }
+
         fun getFormattedDateForActivity(c: Calendar): String {
             val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH)
             val formattedDate = df.format(c.time)
@@ -1601,6 +1615,27 @@ class AppUtils {
             return convertedDate
         }
 
+        fun getIsEndDayAfterStartDay(startD: String,endD:String): Boolean {
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+            var convertedStartDate = Date()
+            var convertedEndDate = Date()
+            try {
+                convertedStartDate = dateFormat.parse(startD)
+                convertedEndDate = dateFormat.parse(endD)
+            } catch (e: ParseException) {
+                e.printStackTrace()
+            }
+            if(convertedStartDate.before(convertedEndDate) ){
+                return true
+            }else if(convertedStartDate.equals(convertedEndDate)){
+                return true
+            } else {
+                return false
+            }
+        }
+
+
+
         fun getCurrentISODateTime(): String {
             val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH)
             return df.format(Date()).toString()
@@ -2280,8 +2315,9 @@ class AppUtils {
         }
 
         fun getSharedPreferencesIsScreenRecorderEnable(context: Context):Boolean{
-            val mPrefs = context.getSharedPreferences("IsScreenRecorderEnable_STATUS", Context.MODE_PRIVATE)
-            return mPrefs.getBoolean("IsScreenRecorderEnable",false)
+            /*val mPrefs = context.getSharedPreferences("IsScreenRecorderEnable_STATUS", Context.MODE_PRIVATE)
+            return mPrefs.getBoolean("IsScreenRecorderEnable",false)*/
+            return false
         }
 
 

@@ -12,7 +12,6 @@ import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.os.*
-import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.text.Editable
 import android.text.TextUtils
@@ -69,7 +68,6 @@ import com.breezedsm.features.photoReg.api.GetUserListPhotoRegProvider
 import com.breezedsm.features.photoReg.model.UserFacePicUrlResponse
 import com.breezedsm.widgets.AppCustomEditText
 import com.breezedsm.widgets.AppCustomTextView
-import timber.log.Timber
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -90,16 +88,20 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_login.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
 import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * Created by Saikat on 29-08-2018.
  */
+//Revision 1.0 Suman 2024-05-30 mantis id 27495
 class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog.OnDateSetListener, OnMapReadyCallback {
 
     private lateinit var mContext: Context
@@ -967,6 +969,14 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
                             else {
                                 workTypeId = workTypeList[i].ID.toString()
                                 tv_work_type.text = workTypeList[i].Descrpton
+
+                                //Suman 06-06-2024 mantis id 0027517 begin
+                                try {
+                                    Pref.AttendWorkTypeName = workTypeList[i].Descrpton.toString()
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                                //Suman 06-06-2024 mantis id 0027517 end
                             }
                         }
                     } else {
@@ -1572,7 +1582,9 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
                         tv_attendance_submit.text = getString(R.string.submit_button_text)
 
                     //01-09-2021
+                    //Revision 1.0 Suman 2024-05-30 mantis id 27495 begin
                     cv_work_type_root.visibility= View.GONE
+                    //Revision 1.0 Suman 2024-05-30 mantis id 27495 and
                     cv_dd_field.visibility = View.GONE
                     cv_route.visibility = View.GONE
                     cv_dd_field.visibility = View.GONE
@@ -1684,7 +1696,9 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
                 dialogYes.setOnClickListener({ view ->
                     simpleDialog.cancel()
                     AppUtils.hideSoftKeyboard(mContext as DashboardActivity)
+                    //Revision 1.0 Suman 2024-05-30 mantis id 27495 begin
                     workTypeId="9"
+                    //Revision 1.0 Suman 2024-05-30 mantis id 27495 end
                     if(Pref.IsShowDayStart){
                         getLocforStart()
                     }
@@ -1696,7 +1710,9 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
             }
             else{
                 AppUtils.hideSoftKeyboard(mContext as DashboardActivity)
+                //Revision 1.0 Suman 2024-05-30 mantis id 27495 begin
                 workTypeId="9"
+                //Revision 1.0 Suman 2024-05-30 mantis id 27495 end
                 if(Pref.IsShowDayStart){
                     getLocforStart()
                 }
@@ -2395,6 +2411,10 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
                             Timber.d("AddAttendance Response Msg=========> " + response.message)
                             if (response.status == NetworkConstant.SUCCESS) {
 
+                                //Suman 06-06-2024 mantis id 0027517 begin
+                                Pref.AttendWorkTypeID = addAttendenceModel.work_type
+                                //Suman 06-06-2024 mantis id 0027517 end
+
                                 /*if (AppDatabase.getDBInstance()?.selectedWorkTypeDao()?.getAll() != null)
                             AppDatabase.getDBInstance()?.selectedWorkTypeDao()?.delete()
 
@@ -2591,8 +2611,8 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
                                 //var bitmap :Bitmap? = null
                                 //registerFace(bitmap);
                                 println("reg_face - GetImageFromUrl called"+AppUtils.getCurrentDateTime());
-                                GetImageFromUrl().execute(CustomStatic.FaceUrl)
-
+                                //GetImageFromUrl().execute(CustomStatic.FaceUrl)
+                                faceImgProcess(CustomStatic.FaceUrl)
                                 Timber.d(" AddAttendanceFragment : FaceRegistration/FaceMatch" +response.status.toString() +", : "  + ", Success: ")
                             }else{
                                 BaseActivity.isApiInitiated = false
@@ -2659,7 +2679,7 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
 
     private fun registerFace(mBitmap: Bitmap?) {
         //BaseActivity.isApiInitiated=false
-        println("reg_face - add_attendance_registerFace"+AppUtils.getCurrentDateTime());
+        Timber.d("reg_face - add_attendance_registerFace"+AppUtils.getCurrentDateTime());
         try {
             if (mBitmap == null) {
                 //Toast.makeText(this, "No File", Toast.LENGTH_SHORT).show()
@@ -2674,14 +2694,14 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
             faceBmp = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.ARGB_8888)
             faceDetector?.process(image)?.addOnSuccessListener(OnSuccessListener<List<Face>> { faces ->
                 if (faces.size == 0) {
-                    println("reg_face - add_attendance_registerFace no face detected"+AppUtils.getCurrentDateTime());
+                    Timber.d("reg_face - add_attendance_registerFace no face detected"+AppUtils.getCurrentDateTime());
                     return@OnSuccessListener
                 }
                 Handler().post {
                     object : Thread() {
                         override fun run() {
                             //action
-                            println("reg_face - add_attendance_registerFace face detected"+AppUtils.getCurrentDateTime());
+                            Timber.d("reg_face - add_attendance_registerFace face detected"+AppUtils.getCurrentDateTime());
                             onFacesDetected(1, faces, true) //no need to add currtime
                         }
                     }.start()
@@ -2723,147 +2743,157 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
     }
 
     fun onFacesDetected(currTimestamp: Long, faces: List<Face>, add: Boolean) {
-        val paint = Paint()
-        paint.color = Color.RED
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 2.0f
-        val mappedRecognitions: MutableList<Recognition> = LinkedList()
+        try {
+            val paint = Paint()
+            paint.color = Color.RED
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 2.0f
+            val mappedRecognitions: MutableList<Recognition> = LinkedList()
 
 
-        //final List<Classifier.Recognition> results = new ArrayList<>();
+            //final List<Classifier.Recognition> results = new ArrayList<>();
 
-        // Note this can be done only once
-        val sourceW = rgbFrameBitmap!!.width
-        val sourceH = rgbFrameBitmap!!.height
-        val targetW = portraitBmp!!.width
-        val targetH = portraitBmp!!.height
-        val transform = createTransform(
-                sourceW,
-                sourceH,
-                targetW,
-                targetH,
-                90)
-        val mutableBitmap = portraitBmp!!.copy(Bitmap.Config.ARGB_8888, true)
-        val cv = Canvas(mutableBitmap)
+            // Note this can be done only once
+            val sourceW = rgbFrameBitmap!!.width
+            val sourceH = rgbFrameBitmap!!.height
+            val targetW = portraitBmp!!.width
+            val targetH = portraitBmp!!.height
+            val transform = createTransform(
+                    sourceW,
+                    sourceH,
+                    targetW,
+                    targetH,
+                    90)
+            val mutableBitmap = portraitBmp!!.copy(Bitmap.Config.ARGB_8888, true)
+            val cv = Canvas(mutableBitmap)
 
-        // draws the original image in portrait mode.
-        cv.drawBitmap(rgbFrameBitmap!!, transform!!, null)
-        val cvFace = Canvas(faceBmp!!)
-        val saved = false
-        for (face in faces) {
-            //results = detector.recognizeImage(croppedBitmap);
-            val boundingBox = RectF(face.boundingBox)
+            // draws the original image in portrait mode.
+            cv.drawBitmap(rgbFrameBitmap!!, transform!!, null)
+            val cvFace = Canvas(faceBmp!!)
+            val saved = false
+            for (face in faces) {
+                //results = detector.recognizeImage(croppedBitmap);
+                val boundingBox = RectF(face.boundingBox)
 
-            //final boolean goodConfidence = result.getConfidence() >= minimumConfidence;
-            val goodConfidence = true //face.get;
-            if (boundingBox != null && goodConfidence) {
+                //final boolean goodConfidence = result.getConfidence() >= minimumConfidence;
+                val goodConfidence = true //face.get;
+                if (boundingBox != null && goodConfidence) {
 
-                // maps crop coordinates to original
-                cropToFrameTransform?.mapRect(boundingBox)
+                    // maps crop coordinates to original
+                    cropToFrameTransform?.mapRect(boundingBox)
 
-                // maps original coordinates to portrait coordinates
-                val faceBB = RectF(boundingBox)
-                transform.mapRect(faceBB)
+                    // maps original coordinates to portrait coordinates
+                    val faceBB = RectF(boundingBox)
+                    transform.mapRect(faceBB)
 
-                // translates portrait to origin and scales to fit input inference size
-                //cv.drawRect(faceBB, paint);
-                val sx = TF_OD_API_INPUT_SIZE.toFloat() / faceBB.width()
-                val sy = TF_OD_API_INPUT_SIZE.toFloat() / faceBB.height()
-                val matrix = Matrix()
-                matrix.postTranslate(-faceBB.left, -faceBB.top)
-                matrix.postScale(sx, sy)
-                cvFace.drawBitmap(portraitBmp!!, matrix, null)
+                    // translates portrait to origin and scales to fit input inference size
+                    //cv.drawRect(faceBB, paint);
+                    val sx = TF_OD_API_INPUT_SIZE.toFloat() / faceBB.width()
+                    val sy = TF_OD_API_INPUT_SIZE.toFloat() / faceBB.height()
+                    val matrix = Matrix()
+                    matrix.postTranslate(-faceBB.left, -faceBB.top)
+                    matrix.postScale(sx, sy)
+                    cvFace.drawBitmap(portraitBmp!!, matrix, null)
 
-                //canvas.drawRect(faceBB, paint);
-                var label = ""
-                var confidence = -1f
-                var color = Color.BLUE
-                var extra: Any? = null
-                var crop: Bitmap? = null
-                if (add) {
-                    try {
-                        crop = Bitmap.createBitmap(portraitBmp!!,
-                                faceBB.left.toInt(),
-                                faceBB.top.toInt(),
-                                faceBB.width().toInt(),
-                                faceBB.height().toInt())
-                    } catch (eon: java.lang.Exception) {
-                        //runOnUiThread(Runnable { Toast.makeText(mContext, "Failed to detect", Toast.LENGTH_LONG) })
-                    }
-                }
-                val startTime = SystemClock.uptimeMillis()
-                val resultsAux = FaceStartActivity.detector.recognizeImage(faceBmp, add)
-                val lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime
-                if (resultsAux.size > 0) {
-                    val result = resultsAux[0]
-                    extra = result.extra
-                    //          Object extra = result.getExtra();
-//          if (extra != null) {
-//            LOGGER.i("embeeding retrieved " + extra.toString());
-//          }
-                    val conf = result.distance
-                    if (conf < 1.0f) {
-                        confidence = conf
-                        label = result.title
-                        color = if (result.id == "0") {
-                            Color.GREEN
-                        } else {
-                            Color.RED
+                    //canvas.drawRect(faceBB, paint);
+                    var label = ""
+                    var confidence = -1f
+                    var color = Color.BLUE
+                    var extra: Any? = null
+                    var crop: Bitmap? = null
+                    if (add) {
+                        try {
+                            crop = Bitmap.createBitmap(portraitBmp!!,
+                                    faceBB.left.toInt(),
+                                    faceBB.top.toInt(),
+                                    faceBB.width().toInt(),
+                                    faceBB.height().toInt())
+                        } catch (eon: java.lang.Exception) {
+                            //runOnUiThread(Runnable { Toast.makeText(mContext, "Failed to detect", Toast.LENGTH_LONG) })
                         }
                     }
+                    val startTime = SystemClock.uptimeMillis()
+                    val resultsAux = FaceStartActivity.detector.recognizeImage(faceBmp, add)
+                    val lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime
+                    if (resultsAux.size > 0) {
+                        val result = resultsAux[0]
+                        extra = result.extra
+                        //          Object extra = result.getExtra();
+    //          if (extra != null) {
+    //            LOGGER.i("embeeding retrieved " + extra.toString());
+    //          }
+                        val conf = result.distance
+                        if (conf < 1.0f) {
+                            confidence = conf
+                            label = result.title
+                            color = if (result.id == "0") {
+                                Color.GREEN
+                            } else {
+                                Color.RED
+                            }
+                        }
+                    }
+                    val flip = Matrix()
+                    flip.postScale(1f, -1f, previewWidth / 2.0f, previewHeight / 2.0f)
+
+                    //flip.postScale(1, -1, targetW / 2.0f, targetH / 2.0f);
+                    flip.mapRect(boundingBox)
+                    val result = Recognition(
+                            "0", label, confidence, boundingBox)
+                    result.color = color
+                    result.location = boundingBox
+                    result.extra = extra
+                    result.crop = crop
+                    mappedRecognitions.add(result)
                 }
-                val flip = Matrix()
-                flip.postScale(1f, -1f, previewWidth / 2.0f, previewHeight / 2.0f)
-
-                //flip.postScale(1, -1, targetW / 2.0f, targetH / 2.0f);
-                flip.mapRect(boundingBox)
-                val result = Recognition(
-                        "0", label, confidence, boundingBox)
-                result.color = color
-                result.location = boundingBox
-                result.extra = extra
-                result.crop = crop
-                mappedRecognitions.add(result)
             }
-        }
 
-        //    if (saved) {
+            //    if (saved) {
 //      lastSaved = System.currentTimeMillis();
 //    }
 
-        Log.e("xc", "startabc" )
-        val rec = mappedRecognitions[0]
-        FaceStartActivity.detector.register("", rec)
-        val intent = Intent(mContext, DetectorActivity::class.java)
-        startActivityForResult(intent, 171)
+            try {
+                Log.e("xc", "startabc" )
+                Timber.d("start startActivityForResult")
+                val rec = mappedRecognitions[0]
+                FaceStartActivity.detector.register("", rec)
+                val intent = Intent(mContext, DetectorActivity::class.java)
+                startActivityForResult(intent, 171)
+            } catch (e: Exception) {
+                Timber.d("error ${e.message}")
+            }
 //        startActivity(new Intent(this,DetectorActivity.class));
 //        finish();
 
-        // detector.register("Sakil", rec);
-        /*   runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ivFace.setImageBitmap(rec.getCrop());
-                //showAddFaceDialog(rec);
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                LayoutInflater inflater = getLayoutInflater();
-                View dialogLayout = inflater.inflate(R.layout.image_edit_dialog, null);
-                ImageView ivFace = dialogLayout.findViewById(R.id.dlg_image);
-                TextView tvTitle = dialogLayout.findViewById(R.id.dlg_title);
-                EditText etName = dialogLayout.findViewById(R.id.dlg_input);
+            // detector.register("Sakil", rec);
+            /*   runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ivFace.setImageBitmap(rec.getCrop());
+                        //showAddFaceDialog(rec);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        LayoutInflater inflater = getLayoutInflater();
+                        View dialogLayout = inflater.inflate(R.layout.image_edit_dialog, null);
+                        ImageView ivFace = dialogLayout.findViewById(R.id.dlg_image);
+                        TextView tvTitle = dialogLayout.findViewById(R.id.dlg_title);
+                        EditText etName = dialogLayout.findViewById(R.id.dlg_input);
 
-                tvTitle.setText("Register Your Face");
-                ivFace.setImageBitmap(rec.getCrop());
-                etName.setHint("Please tell your name");
-                detector.register("sam", rec); //for register a face
+                        tvTitle.setText("Register Your Face");
+                        ivFace.setImageBitmap(rec.getCrop());
+                        etName.setHint("Please tell your name");
+                        detector.register("sam", rec); //for register a face
 
-                //button.setPressed(true);
-                //button.performClick();
-            }
+                        //button.setPressed(true);
+                        //button.performClick();
+                    }
 
-        });*/
+                });*/
 
-        // updateResults(currTimestamp, mappedRecognitions);
+            // updateResults(currTimestamp, mappedRecognitions);
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Timber.d("onfacedetected err ${e.printStackTrace()}")
+        }
     }
 
     inner class GetImageFromUrl : AsyncTask<String?, Void?, Bitmap?>() {
@@ -2871,6 +2901,7 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
             //this.imageView = img;
         }
         override fun doInBackground(vararg url: String?): Bitmap {
+            println("tag_attend_face_process1 begin")
             var bitmappppx: Bitmap? = null
             val stringUrl = url[0]
             bitmappppx = null
@@ -2886,11 +2917,37 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
 
         override fun onPostExecute(result: Bitmap?) {
             super.onPostExecute(result)
-            println("reg_face - registerFace called"+AppUtils.getCurrentDateTime());
+            Timber.d("reg_face - registerFace called"+AppUtils.getCurrentDateTime());
+            println("tag_attend_face_process1 end")
             registerFace(result)
         }
 
     }
+
+    //new face image process begin
+    fun faceImgProcess(faceUrl:String){
+        Timber.d("tag_attend_face_process begin")
+        var executorService : ExecutorService = Executors.newSingleThreadExecutor()
+        Handler(Looper.getMainLooper()).postDelayed({
+            executorService.execute{
+                var bitmappppx: Bitmap? = null
+                val stringUrl = faceUrl
+                bitmappppx = null
+                val inputStream: InputStream
+                try {
+                    inputStream = URL(stringUrl).openStream()
+                    bitmappppx = BitmapFactory.decodeStream(inputStream)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+                Timber.d("tag_attend_face_process end")
+                registerFace(bitmappppx!!)
+            }
+        }, 1000)
+    }
+
+    //new face image process end
+
 
 
     private fun isLocationServiceRunning(serviceClass: Class<*>): Boolean {

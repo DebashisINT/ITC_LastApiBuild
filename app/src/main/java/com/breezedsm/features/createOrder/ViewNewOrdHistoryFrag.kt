@@ -118,9 +118,17 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
         tv_noDataBody = view.findViewById(R.id.tv_empty_page_msg)
         img_direction = view.findViewById(R.id.img_direction)
 
+        ll_no_data_root.visibility = View.VISIBLE
+        tv_noDataHeader.text = "No Order Found"
+        tv_noDataBody.visibility = View.GONE
+        img_direction.visibility = View.GONE
+        rvOrdDtls.visibility = View.GONE
+
         progress_wheel.stopSpinning()
 
         tvSyncAll.setOnClickListener(this)
+
+        ll_no_data_root.visibility = View.GONE
     }
 
     override fun onClick(v: View?) {
@@ -145,7 +153,8 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
     }
 
     private fun orderHis(ordDate:String){
-        var ordL = AppDatabase.getDBInstance()!!.newOrderDataDao().getTodayOrderOrderBy(ordDate) as ArrayList<NewOrderDataEntity>
+        //var ordL = AppDatabase.getDBInstance()!!.newOrderDataDao().getTodayOrderOrderBy(ordDate) as ArrayList<NewOrderDataEntity>
+        var ordL = AppDatabase.getDBInstance()!!.newOrderDataDao().getTodayOrderOrderByShopMasterValidation(ordDate) as ArrayList<NewOrderDataEntity>
         if(ordL.size>0){
             ll_no_data_root.visibility = View.GONE
 
@@ -172,7 +181,7 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
             rvOrdDtls.adapter = adapterNewOrdDtls
             Handler().postDelayed(Runnable {
                 progress_wheel.stopSpinning()
-            }, 2000)
+            }, 1100)
 
         }else{
             ll_no_data_root.visibility = View.VISIBLE
@@ -195,8 +204,21 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
             dir.mkdirs()
         }
 
+        var pathNew = ""
+
         try {
-            PdfWriter.getInstance(document, FileOutputStream(path + fileName + ".pdf"))
+            //PdfWriter.getInstance(document, FileOutputStream(path + fileName + ".pdf"))
+
+            try {
+                PdfWriter.getInstance(document, FileOutputStream(path + fileName + ".pdf"))
+            }catch (ex:Exception){
+                ex.printStackTrace()
+
+                pathNew = mContext.filesDir.toString() + "/" + fileName+".pdf"
+                //val file = File(mContext.filesDir.toString() + "/" + fileName)
+                PdfWriter.getInstance(document, FileOutputStream(pathNew))
+            }
+
             document.open()
             var font: Font = Font(Font.FontFamily.HELVETICA, 10f, Font.BOLD)
             var font1: Font = Font(Font.FontFamily.HELVETICA, 8f, Font.NORMAL)
@@ -243,7 +265,7 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
             ordNo.spacingAfter = 2f
             document.add(ordNo)
 
-            val ordDate = Paragraph("Order Date   :   " + AppUtils.convertDateTimeToCommonFormat(obj.order_date), font)
+            val ordDate = Paragraph("Order Date   :   " + AppUtils.convertToDateLikeOrderFormat(obj.order_date), font)
             ordDate.alignment = Element.ALIGN_LEFT
             ordDate.spacingAfter = 2f
             document.add(ordDate)
@@ -324,7 +346,11 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
             for(i in 0..ordProductL.size-1){
                 sLNo = (i+1).toString() +" "
                 item = ordProductL!!.get(i).product_name +  "       "
-                uom = AppDatabase.getDBInstance()!!.newProductListDao().getProductDtls(ordProductL.get(i).product_id).UOM.toString()
+                try {
+                    uom = AppDatabase.getDBInstance()!!.newProductListDao().getProductDtls(ordProductL.get(i).product_id).UOM.toString()
+                }catch (ex:Exception){
+                    uom = "N.A."
+                }
                 qty = ordProductL!!.get(i).submitedQty +" "
                 rate = ordProductL!!.get(i).submitedSpecialRate.toString() +" "
                 total =  String.format("%.02f",(ordProductL!!.get(i).submitedQty.toDouble() * ordProductL!!.get(i).submitedSpecialRate.toDouble()))
@@ -385,6 +411,11 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
             document.close()
 
             var sendingPath = path + fileName + ".pdf"
+            if(!pathNew.equals("")){
+                sendingPath = pathNew
+            }
+
+
             try{
                 val shareIntent = Intent(Intent.ACTION_SEND)
                 val fileUrl = Uri.parse(sendingPath)
@@ -400,6 +431,7 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
 
         }catch (ex:Exception){
             ex.printStackTrace()
+            Timber.d("err ${ex.printStackTrace()}")
         }
 
     }
@@ -435,6 +467,11 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
                 obj.product_name=ordProductDtls.get(i).product_name
                 obj.submitedQty=ordProductDtls.get(i).submitedQty.toDouble()
                 obj.submitedSpecialRate=ordProductDtls.get(i).submitedSpecialRate.toDouble()
+
+                obj.total_amt=ordProductDtls.get(i).total_amt.toString().toDouble()
+                obj.mrp=ordProductDtls.get(i).mrp.toString().toDouble()
+                obj.itemPrice=ordProductDtls.get(i).itemPrice.toString().toDouble()
+
 
                 syncOrdProductL.add(obj)
             }
@@ -504,6 +541,11 @@ class ViewNewOrdHistoryFrag: BaseFragment(), View.OnClickListener, DatePickerLis
                     obj.product_name=ordProductDtls.get(i).product_name
                     obj.submitedQty=ordProductDtls.get(i).submitedQty.toDouble()
                     obj.submitedSpecialRate=ordProductDtls.get(i).submitedSpecialRate.toDouble()
+
+                    obj.total_amt=ordProductDtls.get(i).total_amt.toString().toDouble()
+                    obj.mrp=ordProductDtls.get(i).mrp.toString().toDouble()
+                    obj.itemPrice=ordProductDtls.get(i).itemPrice.toString().toDouble()
+
 
                     syncOrdProductL.add(obj)
                 }

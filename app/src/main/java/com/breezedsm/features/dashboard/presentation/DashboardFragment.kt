@@ -136,6 +136,8 @@ import java.util.*
  * Created by rp : 31-10-2017:16:49
  */
 // Revision 1.0 DashboardFragment  Suman App V4.4.6  09-04-2024  mantis id 27357: stage list api call update on refresh
+// Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335
+// Rev 3.0 Suman 03-06-2024 Suman DashboardFragment mantis 27499
 
 class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListener,
     View.OnTouchListener {
@@ -153,6 +155,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     private lateinit var shop_ll: LinearLayout
     private lateinit var attandance_ll: LinearLayout
     private lateinit var order_ll: LinearLayout
+    private lateinit var order_ll_new: LinearLayout
     private var mFragment: DashboardType = DashboardType.Home
     private lateinit var reportList: RecyclerView
     private lateinit var adapter: ReportAdapter
@@ -671,6 +674,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
         ll_dash_point_visit_newD = view.findViewById(R.id.ll_dash_point_visit_newD)
         ll_dash_day_end_newD = view.findViewById(R.id.ll_dash_day_end_newD)
         ll_dash_total_mew_order_newD = view.findViewById(R.id.ll_dash_total_mew_order_newD)
+        order_ll_new = view.findViewById(R.id.order_ll_new)
         ll_dash_visit_attendance_newD = view.findViewById(R.id.ll_dash_visit_attendance_newD)
 
         simpleDialogProcess = Dialog(mContext)
@@ -2034,6 +2038,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
         //price_RL.setOnClickListener(this)
         ll_dash_total_order_newD.setOnClickListener(this)
         ll_dash_total_mew_order_newD.setOnClickListener(this)
+        order_ll_new.setOnClickListener(this)
 
         tv_view_all.setOnClickListener(this)
         tv_pick_date_range.setOnClickListener(this)
@@ -2250,10 +2255,12 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             //enddate_TV.visibility = View.GONE
             ll_dash_day_end_newD.visibility = View.GONE
         }
-        if(Pref.ShowPartyWithCreateOrder){
+        if(Pref.ShowPartyWithCreateOrder && Pref.ShowUserwisePartyWithCreateOrder){
             ll_dash_total_mew_order_newD.visibility = View.VISIBLE
+            order_ll_new.visibility = View.VISIBLE
         }else{
             ll_dash_total_mew_order_newD.visibility = View.GONE
+            order_ll_new.visibility = View.GONE
         }
 
         if (Pref.ShowAutoRevisitInDashboard)
@@ -2846,6 +2853,9 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             R.id.ll_dash_total_mew_order_newD ->{
                 (mContext as DashboardActivity).loadFragment(FragType.ViewNewOrdHistoryFrag, true, "")
             }
+            R.id.order_ll_new ->{
+                (mContext as DashboardActivity).loadFragment(FragType.ViewNewOrdHisAllFrag, true, "")
+            }
 
             //R.id.price_RL -> {
             R.id.ll_dash_total_order_newD -> {
@@ -3146,7 +3156,8 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             //adapter = ReportAdapter(mContext, work_type_list)
             layoutManager = LinearLayoutManager(mContext, LinearLayout.VERTICAL, false)
             reportList.layoutManager = layoutManager
-            reportList.adapter = TodaysWorkAdapter(mContext, work_type_list)
+            //reportList.adapter = TodaysWorkAdapter(mContext, work_type_list)
+            reportList.adapter = TodaysWorkAdapter1(mContext, work_type_list)
             reportList.isNestedScrollingEnabled = false
         } else {
             reportList.visibility = View.GONE
@@ -5380,25 +5391,13 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                                                 false
                                             )
                                         }
-                                    } else if (response.getconfigure!![i].Key.equals(
-                                            "IsScreenRecorderEnable",
-                                            ignoreCase = true
-                                        )
-                                    ) {
-                                        Pref.IsScreenRecorderEnable =
-                                            response.getconfigure!![i].Value == "1"
-                                        if (Pref.IsScreenRecorderEnable) {
-                                            AppUtils.saveSharedPreferencesIsScreenRecorderEnable(
-                                                mContext,
-                                                true
-                                            )
+                                    } /*else if (response.getconfigure!![i].Key.equals("IsScreenRecorderEnable", ignoreCase = true)) {
+                                        Pref.IsScreenRecorderEnable = response.getconfigure!![i].Value == "1"
+                                        if (Pref.IsScreenRecorderEnable) { AppUtils.saveSharedPreferencesIsScreenRecorderEnable(mContext, true)
                                         } else {
-                                            AppUtils.saveSharedPreferencesIsScreenRecorderEnable(
-                                                mContext,
-                                                false
-                                            )
+                                            AppUtils.saveSharedPreferencesIsScreenRecorderEnable(mContext, false)
                                         }
-                                    }
+                                    }*/
                                     //else if (response.getconfigure?.get(i)?.Key.equals("IsFromPortal", ignoreCase = true)) {
                                     else if (response.getconfigure?.get(i)?.Key.equals(
                                             "IsDocRepoFromPortal",
@@ -6129,8 +6128,37 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                                         if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
                                             Pref.IsShowAttendanceSummary = response.getconfigure?.get(i)?.Value == "1"
                                         }
+                                    }else if (response.getconfigure?.get(i)?.Key.equals("ShowUserwisePartyWithGeoFence", ignoreCase = true)) {
+                                        Pref.ShowUserwisePartyWithGeoFence = response.getconfigure!![i].Value == "1"
+                                        if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                            Pref.ShowUserwisePartyWithGeoFence = response.getconfigure?.get(i)?.Value == "1"
+                                        }
+                                    }else if (response.getconfigure?.get(i)?.Key.equals("ShowUserwisePartyWithCreateOrder", ignoreCase = true)) {
+                                        Pref.ShowUserwisePartyWithCreateOrder = response.getconfigure!![i].Value == "1"
+                                        if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                            Pref.ShowUserwisePartyWithCreateOrder = response.getconfigure?.get(i)?.Value == "1"
+                                        }
+                                    }else if (response.getconfigure?.get(i)?.Key.equals("IsRouteUpdateForShopUser", ignoreCase = true)) {
+                                        Pref.IsRouteUpdateForShopUser = response.getconfigure!![i].Value == "1"
+                                        if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                            Pref.IsRouteUpdateForShopUser = response.getconfigure?.get(i)?.Value == "1"
+                                        }
+                                    }else if (response.getconfigure?.get(i)?.Key.equals("IsShowUserWiseDateWiseOrderInApp", ignoreCase = true)) {
+                                        Pref.IsShowUserWiseDateWiseOrderInApp = response.getconfigure!![i].Value == "1"
+                                        if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                            Pref.IsShowUserWiseDateWiseOrderInApp = response.getconfigure?.get(i)?.Value == "1"
+                                        }
+                                    }else if (response.getconfigure?.get(i)?.Key.equals("IsOrderEditEnable", ignoreCase = true)) {
+                                        Pref.IsOrderEditEnable = response.getconfigure!![i].Value == "1"
+                                        if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                            Pref.IsOrderEditEnable = response.getconfigure?.get(i)?.Value == "1"
+                                        }
+                                    }else if (response.getconfigure?.get(i)?.Key.equals("IsOrderDeleteEnable", ignoreCase = true)) {
+                                        Pref.IsOrderDeleteEnable = response.getconfigure!![i].Value == "1"
+                                        if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                            Pref.IsOrderDeleteEnable = response.getconfigure?.get(i)?.Value == "1"
+                                        }
                                     }
-
 
 
 
@@ -7213,7 +7241,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     // Revision 2.0   Suman App V4.4.6  04-04-2024  mantis id 27291: New Order Module api implement & room insertion begin
 
     private fun getNewProductList() {
-        if(Pref.ShowPartyWithCreateOrder){
+        if(Pref.ShowPartyWithCreateOrder && Pref.ShowUserwisePartyWithCreateOrder){
             progress_wheel.spin()
             val repository = ProductListRepoProvider.productListProvider()
             BaseActivity.compositeDisposable.add(
@@ -7254,7 +7282,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     }
 
     private fun getNewProductRateList() {
-        if(Pref.ShowPartyWithCreateOrder){
+        if(Pref.ShowPartyWithCreateOrder && Pref.ShowUserwisePartyWithCreateOrder){
             progress_wheel.spin()
             val repository = ProductListRepoProvider.productListProvider()
             BaseActivity.compositeDisposable.add(
@@ -7298,7 +7326,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
 
     private fun getOrderHistoryList(){
         var ordHisL = AppDatabase.getDBInstance()!!.newOrderDataDao().getAllOrder() as ArrayList<NewOrderDataEntity>
-        if(Pref.ShowPartyWithCreateOrder && ordHisL.size==0){
+        if(Pref.ShowPartyWithCreateOrder && ordHisL.size==0 && Pref.ShowUserwisePartyWithCreateOrder){
             Timber.d("getOrderHistoryList call")
             progress_wheel.spin()
             val repository = ProductListRepoProvider.productListProvider()
@@ -7339,6 +7367,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                                         objProduct.product_name = order_list.get(i).product_list.get(j).product_name
                                         objProduct.submitedQty = order_list.get(i).product_list.get(j).submitedQty.toInt().toString()
                                         objProduct.submitedSpecialRate = order_list.get(i).product_list.get(j).submitedSpecialRate.toString()
+                                        objProduct.shop_id = order_list.get(i).shop_id
                                         objProductL.add(objProduct)
                                     }
 
@@ -7502,10 +7531,12 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             //enddate_TV.visibility = View.GONE
             ll_dash_day_end_newD.visibility = View.GONE
         }
-        if(Pref.ShowPartyWithCreateOrder){
+        if(Pref.ShowPartyWithCreateOrder && Pref.ShowUserwisePartyWithCreateOrder){
             ll_dash_total_mew_order_newD.visibility = View.VISIBLE
+            order_ll_new.visibility = View.VISIBLE
         }else{
             ll_dash_total_mew_order_newD.visibility = View.GONE
+            order_ll_new.visibility = View.GONE
         }
 
         if (Pref.IsShowTotalVisitsOnAppDashboard) {
@@ -7569,22 +7600,27 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
         else{
             reportList.visibility = View.GONE
         }
-        timerTV = view!!.findViewById(R.id.tv_dash_frag_timer)
-        if(Pref.IsShowMarketSpendTimer){
-            timerTV.visibility = View.VISIBLE
-            try{
-                if(!Pref.DayStartTime.equals("")){
-                    var currentTime = System.currentTimeMillis().toString()
-                    var timeDiff = AppUtils.getTimeFromTimeSpan(Pref.DayStartTime,System.currentTimeMillis().toString())
-                    timeDiff = timeDiff.split(":").get(0)+":"+timeDiff.split(":").get(1)
-                    timerTV.text = "$timeDiff"
+        try {
+            timerTV = view!!.findViewById(R.id.tv_dash_frag_timer)
+            if(Pref.IsShowMarketSpendTimer){
+                timerTV.visibility = View.VISIBLE
+                try{
+                    if(!Pref.DayStartTime.equals("")){
+                        var currentTime = System.currentTimeMillis().toString()
+                        var timeDiff = AppUtils.getTimeFromTimeSpan(Pref.DayStartTime,System.currentTimeMillis().toString())
+                        timeDiff = timeDiff.split(":").get(0)+":"+timeDiff.split(":").get(1)
+                        timerTV.text = "$timeDiff"
+                    }
+                }catch (ex:Exception){
+                    Timber.d("ex timer text")
                 }
-            }catch (ex:Exception){
-                Timber.d("ex timer text")
+            }else{
+                timerTV.visibility = View.GONE
             }
-        }else{
-            timerTV.visibility = View.GONE
+        }catch (ex:Exception){
+            ex.printStackTrace()
         }
+
 
         (mContext as DashboardActivity).updateUI()
     }
@@ -7833,7 +7869,13 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
 
         try{
             var nearestDist = 5000
-            var nearBy: Double = Pref.DistributorGPSAccuracy.toDouble()
+            var nearBy: Double = 500.00
+            try {
+                nearBy =  Pref.DistributorGPSAccuracy.toDouble()
+            } catch (e: Exception) {
+                Pref.DistributorGPSAccuracy = "500"
+                e.printStackTrace()
+            }
             var shop_id: String = ""
             var finalNearByShop: AddShopDBModelEntity = AddShopDBModelEntity()
             var finalNearByDD: AssignToDDEntity = AssignToDDEntity()
@@ -7957,6 +7999,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             }
         }catch (ex:Exception){
             ex.printStackTrace()
+            (mContext as DashboardActivity).showSnackMessage(getString(R.string.something_went_wrong))
             Timber.d("getNearyShopList ex ${ex.message}" + " , " + " Time :" + AppUtils.getCurrentDateTime())
         }
 
@@ -8019,6 +8062,9 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             } catch (ex: Exception) {
                 addr = ""
             }
+
+            dayst.attendance_worktype_id = Pref.AttendWorkTypeID
+            dayst.attendance_worktype_name = Pref.AttendWorkTypeName
 
             progress_wheel.spin()
             val repository = DayStartEndRepoProvider.dayStartRepositiry()
@@ -8319,9 +8365,13 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
         simpleDialog.setCancelable(false)
         simpleDialog.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         simpleDialog.setContentView(R.layout.dialog_end_day_sale_value)
-        val et_saleValue: EditText =
-            simpleDialog.findViewById(R.id.dialog_et_sale_value) as EditText
+        val tv_head: AppCustomTextView = simpleDialog.findViewById(R.id.dialog_cancel_order_header_TV) as AppCustomTextView
+        val et_saleValue: EditText = simpleDialog.findViewById(R.id.dialog_et_sale_value) as EditText
         val submit = simpleDialog.findViewById(R.id.tv_dialog_submit) as AppCustomTextView
+
+        // Rev 3.0 Suman 03-06-2024 Suman DashboardFragment mantis 27499 begin
+        tv_head.text = "Enter Delivery value"
+        // Rev 3.0 Suman 03-06-2024 Suman DashboardFragment mantis 27499 end
 
         et_saleValue.setOnFocusChangeListener({ v, hasFocus ->
             if (hasFocus) {
@@ -9251,152 +9301,157 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     }
 
     fun onFacesDetected(currTimestamp: Long, faces: List<Face>, add: Boolean) {
-        val paint = Paint()
-        paint.color = Color.RED
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 2.0f
-        val mappedRecognitions: MutableList<SimilarityClassifier.Recognition> = LinkedList()
+        try {
+            val paint = Paint()
+            paint.color = Color.RED
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 2.0f
+            val mappedRecognitions: MutableList<SimilarityClassifier.Recognition> = LinkedList()
 
 
-        //final List<Classifier.Recognition> results = new ArrayList<>();
+            //final List<Classifier.Recognition> results = new ArrayList<>();
 
-        // Note this can be done only once
-        val sourceW = rgbFrameBitmap!!.width
-        val sourceH = rgbFrameBitmap!!.height
-        val targetW = portraitBmp!!.width
-        val targetH = portraitBmp!!.height
-        val transform = createTransform(
-            sourceW,
-            sourceH,
-            targetW,
-            targetH,
-            90
-        )
-        val mutableBitmap = portraitBmp!!.copy(Bitmap.Config.ARGB_8888, true)
-        val cv = Canvas(mutableBitmap)
+            // Note this can be done only once
+            val sourceW = rgbFrameBitmap!!.width
+            val sourceH = rgbFrameBitmap!!.height
+            val targetW = portraitBmp!!.width
+            val targetH = portraitBmp!!.height
+            val transform = createTransform(
+                sourceW,
+                sourceH,
+                targetW,
+                targetH,
+                90
+            )
+            val mutableBitmap = portraitBmp!!.copy(Bitmap.Config.ARGB_8888, true)
+            val cv = Canvas(mutableBitmap)
 
-        // draws the original image in portrait mode.
-        cv.drawBitmap(rgbFrameBitmap!!, transform!!, null)
-        val cvFace = Canvas(faceBmp!!)
-        val saved = false
-        for (face in faces) {
-            //results = detector.recognizeImage(croppedBitmap);
-            val boundingBox = RectF(face.boundingBox)
+            // draws the original image in portrait mode.
+            cv.drawBitmap(rgbFrameBitmap!!, transform!!, null)
+            val cvFace = Canvas(faceBmp!!)
+            val saved = false
+            for (face in faces) {
+                //results = detector.recognizeImage(croppedBitmap);
+                val boundingBox = RectF(face.boundingBox)
 
-            //final boolean goodConfidence = result.getConfidence() >= minimumConfidence;
-            val goodConfidence = true //face.get;
-            if (boundingBox != null && goodConfidence) {
+                //final boolean goodConfidence = result.getConfidence() >= minimumConfidence;
+                val goodConfidence = true //face.get;
+                if (boundingBox != null && goodConfidence) {
 
-                // maps crop coordinates to original
-                cropToFrameTransform?.mapRect(boundingBox)
+                    // maps crop coordinates to original
+                    cropToFrameTransform?.mapRect(boundingBox)
 
-                // maps original coordinates to portrait coordinates
-                val faceBB = RectF(boundingBox)
-                transform.mapRect(faceBB)
+                    // maps original coordinates to portrait coordinates
+                    val faceBB = RectF(boundingBox)
+                    transform.mapRect(faceBB)
 
-                // translates portrait to origin and scales to fit input inference size
-                //cv.drawRect(faceBB, paint);
-                val sx = TF_OD_API_INPUT_SIZE.toFloat() / faceBB.width()
-                val sy = TF_OD_API_INPUT_SIZE.toFloat() / faceBB.height()
-                val matrix = Matrix()
-                matrix.postTranslate(-faceBB.left, -faceBB.top)
-                matrix.postScale(sx, sy)
-                cvFace.drawBitmap(portraitBmp!!, matrix, null)
+                    // translates portrait to origin and scales to fit input inference size
+                    //cv.drawRect(faceBB, paint);
+                    val sx = TF_OD_API_INPUT_SIZE.toFloat() / faceBB.width()
+                    val sy = TF_OD_API_INPUT_SIZE.toFloat() / faceBB.height()
+                    val matrix = Matrix()
+                    matrix.postTranslate(-faceBB.left, -faceBB.top)
+                    matrix.postScale(sx, sy)
+                    cvFace.drawBitmap(portraitBmp!!, matrix, null)
 
-                //canvas.drawRect(faceBB, paint);
-                var label = ""
-                var confidence = -1f
-                var color = Color.BLUE
-                var extra: Any? = null
-                var crop: Bitmap? = null
-                if (add) {
-                    try {
-                        crop = Bitmap.createBitmap(
-                            portraitBmp!!,
-                            faceBB.left.toInt(),
-                            faceBB.top.toInt(),
-                            faceBB.width().toInt(),
-                            faceBB.height().toInt()
-                        )
-                    } catch (eon: java.lang.Exception) {
-                        //runOnUiThread(Runnable { Toast.makeText(mContext, "Failed to detect", Toast.LENGTH_LONG) })
-                    }
-                }
-                val startTime = SystemClock.uptimeMillis()
-                val resultsAux = FaceStartActivity.detector.recognizeImage(faceBmp, add)
-                val lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime
-                if (resultsAux.size > 0) {
-                    val result = resultsAux[0]
-                    extra = result.extra
-                    //          Object extra = result.getExtra();
-//          if (extra != null) {
-//            LOGGER.i("embeeding retrieved " + extra.toString());
-//          }
-                    val conf = result.distance
-                    if (conf < 1.0f) {
-                        confidence = conf
-                        label = result.title
-                        color = if (result.id == "0") {
-                            Color.GREEN
-                        } else {
-                            Color.RED
+                    //canvas.drawRect(faceBB, paint);
+                    var label = ""
+                    var confidence = -1f
+                    var color = Color.BLUE
+                    var extra: Any? = null
+                    var crop: Bitmap? = null
+                    if (add) {
+                        try {
+                            crop = Bitmap.createBitmap(
+                                portraitBmp!!,
+                                faceBB.left.toInt(),
+                                faceBB.top.toInt(),
+                                faceBB.width().toInt(),
+                                faceBB.height().toInt()
+                            )
+                        } catch (eon: java.lang.Exception) {
+                            //runOnUiThread(Runnable { Toast.makeText(mContext, "Failed to detect", Toast.LENGTH_LONG) })
                         }
                     }
+                    val startTime = SystemClock.uptimeMillis()
+                    val resultsAux = FaceStartActivity.detector.recognizeImage(faceBmp, add)
+                    val lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime
+                    if (resultsAux.size > 0) {
+                        val result = resultsAux[0]
+                        extra = result.extra
+                        //          Object extra = result.getExtra();
+    //          if (extra != null) {
+    //            LOGGER.i("embeeding retrieved " + extra.toString());
+    //          }
+                        val conf = result.distance
+                        if (conf < 1.0f) {
+                            confidence = conf
+                            label = result.title
+                            color = if (result.id == "0") {
+                                Color.GREEN
+                            } else {
+                                Color.RED
+                            }
+                        }
+                    }
+                    val flip = Matrix()
+                    flip.postScale(1f, -1f, previewWidth / 2.0f, previewHeight / 2.0f)
+
+                    //flip.postScale(1, -1, targetW / 2.0f, targetH / 2.0f);
+                    flip.mapRect(boundingBox)
+                    val result = SimilarityClassifier.Recognition(
+                        "0", label, confidence, boundingBox
+                    )
+                    result.color = color
+                    result.location = boundingBox
+                    result.extra = extra
+                    result.crop = crop
+                    mappedRecognitions.add(result)
                 }
-                val flip = Matrix()
-                flip.postScale(1f, -1f, previewWidth / 2.0f, previewHeight / 2.0f)
-
-                //flip.postScale(1, -1, targetW / 2.0f, targetH / 2.0f);
-                flip.mapRect(boundingBox)
-                val result = SimilarityClassifier.Recognition(
-                    "0", label, confidence, boundingBox
-                )
-                result.color = color
-                result.location = boundingBox
-                result.extra = extra
-                result.crop = crop
-                mappedRecognitions.add(result)
             }
-        }
 
-        //    if (saved) {
+            //    if (saved) {
 //      lastSaved = System.currentTimeMillis();
 //    }
 
-        Log.e("xc", "startabc")
-        val rec = mappedRecognitions[0]
-        FaceStartActivity.detector.register("", rec)
-        val intent = Intent(mContext, DetectorActivity::class.java)
-        Timber.d("171 hit ")
-        startActivityForResult(intent, 171)
+            Log.e("xc", "startabc")
+            val rec = mappedRecognitions[0]
+            FaceStartActivity.detector.register("", rec)
+            val intent = Intent(mContext, DetectorActivity::class.java)
+            Timber.d("171 hit ")
+            startActivityForResult(intent, 171)
 //        startActivity(new Intent(this,DetectorActivity.class));
 //        finish();
 
-        // detector.register("Sakil", rec);
-        /*   runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ivFace.setImageBitmap(rec.getCrop());
-                //showAddFaceDialog(rec);
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                LayoutInflater inflater = getLayoutInflater();
-                View dialogLayout = inflater.inflate(R.layout.image_edit_dialog, null);
-                ImageView ivFace = dialogLayout.findViewById(R.id.dlg_image);
-                TextView tvTitle = dialogLayout.findViewById(R.id.dlg_title);
-                EditText etName = dialogLayout.findViewById(R.id.dlg_input);
+            // detector.register("Sakil", rec);
+            /*   runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ivFace.setImageBitmap(rec.getCrop());
+                        //showAddFaceDialog(rec);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        LayoutInflater inflater = getLayoutInflater();
+                        View dialogLayout = inflater.inflate(R.layout.image_edit_dialog, null);
+                        ImageView ivFace = dialogLayout.findViewById(R.id.dlg_image);
+                        TextView tvTitle = dialogLayout.findViewById(R.id.dlg_title);
+                        EditText etName = dialogLayout.findViewById(R.id.dlg_input);
 
-                tvTitle.setText("Register Your Face");
-                ivFace.setImageBitmap(rec.getCrop());
-                etName.setHint("Please tell your name");
-                detector.register("sam", rec); //for register a face
+                        tvTitle.setText("Register Your Face");
+                        ivFace.setImageBitmap(rec.getCrop());
+                        etName.setHint("Please tell your name");
+                        detector.register("sam", rec); //for register a face
 
-                //button.setPressed(true);
-                //button.performClick();
-            }
+                        //button.setPressed(true);
+                        //button.performClick();
+                    }
 
-        });*/
+                });*/
 
-        // updateResults(currTimestamp, mappedRecognitions);
+            // updateResults(currTimestamp, mappedRecognitions);
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Timber.d("onfacedetected err ${e.printStackTrace()}")
+        }
     }
 
     fun createTransform(
@@ -10309,6 +10364,17 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                                 }
                                 //End Rev 1.0 Suman 10-07-2023 IsnewShop in api+room mantis id 26537
 
+                                // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 begin
+                                try {
+                                    var shopOb = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shopDurationData.shop_id)
+                                    shopDurationData.shop_lat=shopOb.shopLat.toString()
+                                    shopDurationData.shop_long=shopOb.shopLong.toString()
+                                    shopDurationData.shop_addr=shopOb.address.toString()
+                                }catch (ex:Exception){
+                                    ex.printStackTrace()
+                                }
+                                // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 end
+
                                 shopDataList.add(shopDurationData)
 
                                 //////////////////////////
@@ -10421,6 +10487,17 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                                     shopDurationData.isNewShop = 0
                                 }
                                 //End Rev 1.0 Suman 10-07-2023 IsnewShop in api+room mantis id 26537
+
+                                // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 begin
+                                try {
+                                    var shopOb = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shopDurationData.shop_id)
+                                    shopDurationData.shop_lat=shopOb.shopLat.toString()
+                                    shopDurationData.shop_long=shopOb.shopLong.toString()
+                                    shopDurationData.shop_addr=shopOb.address.toString()
+                                }catch (ex:Exception){
+                                    ex.printStackTrace()
+                                }
+                                // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 end
 
                                 shopDataList.add(shopDurationData)
 
@@ -10994,6 +11071,17 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                             }
                             //End Rev 1.0 Suman 10-07-2023 IsnewShop in api+room mantis id 26537
 
+                            // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 begin
+                            try {
+                                var shopOb = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shopDurationData.shop_id)
+                                shopDurationData.shop_lat=shopOb.shopLat.toString()
+                                shopDurationData.shop_long=shopOb.shopLong.toString()
+                                shopDurationData.shop_addr=shopOb.address.toString()
+                            }catch (ex:Exception){
+                                ex.printStackTrace()
+                            }
+                            // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 end
+
                             shopDataList.add(shopDurationData)
 
                             //////////////////////////
@@ -11316,6 +11404,17 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                         }
                         //End Rev 1.0 Suman 10-07-2023 IsnewShop in api+room mantis id 26537
 
+                        // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 begin
+                        try {
+                            var shopOb = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shopDurationData.shop_id)
+                            shopDurationData.shop_lat=shopOb.shopLat.toString()
+                            shopDurationData.shop_long=shopOb.shopLong.toString()
+                            shopDurationData.shop_addr=shopOb.address.toString()
+                        }catch (ex:Exception){
+                            ex.printStackTrace()
+                        }
+                        // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 end
+
                         shopDataList.add(shopDurationData)
 
                         //////////////////////////
@@ -11399,6 +11498,17 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                             shopDurationData.isNewShop = 0
                         }
                         //End Rev 1.0 Suman 10-07-2023 IsnewShop in api+room mantis id 26537
+
+                        // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 begin
+                        try {
+                            var shopOb = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shopDurationData.shop_id)
+                            shopDurationData.shop_lat=shopOb.shopLat.toString()
+                            shopDurationData.shop_long=shopOb.shopLong.toString()
+                            shopDurationData.shop_addr=shopOb.address.toString()
+                        }catch (ex:Exception){
+                            ex.printStackTrace()
+                        }
+                        // Rev 2.0 Suman 06-05-2024 Suman DashboardFragment mantis 27335 end
 
                         shopDataList.add(shopDurationData)
 

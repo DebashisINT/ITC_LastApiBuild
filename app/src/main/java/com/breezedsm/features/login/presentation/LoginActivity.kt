@@ -151,6 +151,7 @@ import kotlin.collections.ArrayList
 
 // Rev 1.0 LoginActivity Suman 03-07-2023 mantis 26464
 // Revision 2.0   Suman App V4.4.6  04-04-2024  mantis id 27291: New Order Module api implement & room insertion
+// 3.0  LoginActivity Login parameter user_ShopStatus Suman 29-04-2024 mantis id 0027391 v4.4.7
 
 class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
 
@@ -3399,7 +3400,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
                 getIMEI()
         }*/
         takeActionOnGeofence()
-        checkForFingerPrint()
+        //checkForFingerPrint()
     }
 
     private fun checkForFingerPrint() {
@@ -3665,6 +3666,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
                     simpleDialog.dismiss()
 
                 }
+                tvappCustomAnydesk.visibility = View.GONE
                 tvappCustomAnydesk.setOnClickListener {
                     var launchIntent: Intent? = packageManager.getLaunchIntentForPackage("com.anydesk.anydeskandroid")
                     if (launchIntent != null) {
@@ -4381,6 +4383,20 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
         println("xyz - doAfterLoginFunctionality started" + AppUtils.getCurrentDateTime());
         // setEveningAlarm(this, 15, 9)
 
+        // 3.0  LoginActivity Login parameter user_ShopStatus Suman 29-04-2024 mantis id 0027391 v4.4.7 begin
+        try {
+            Pref.user_ShopStatus = loginResponse.user_details!!.user_ShopStatus!!
+        }catch (ex:Exception){
+            ex.printStackTrace()
+            Pref.user_ShopStatus = false
+        }
+        if(Pref.user_ShopStatus){
+            AppDatabase.getDBInstance()!!.addShopEntryDao().deleteAll()
+            AppDatabase.getDBInstance()!!.shopActivityDao().deleteAll()
+        }
+        Timber.d("tag_login_shop_status ${Pref.user_ShopStatus}")
+        // 3.0  LoginActivity Login parameter user_ShopStatus Suman 29-04-2024 mantis id 0027391 v4.4.7 end
+
         Pref.user_id = loginResponse.user_details!!.user_id
         Pref.temp_user_id = loginResponse.user_details!!.user_id
         Pref.user_name = loginResponse.user_details!!.name
@@ -4613,8 +4629,9 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
     private fun getListFromDatabase() {
         println("xyz - isStartOrEndDay end" + AppUtils.getCurrentDateTime());
         println("xyz - getListFromDatabase started" + AppUtils.getCurrentDateTime());
+
         list = AppDatabase.getDBInstance()!!.addShopEntryDao().uniqueShoplist
-        if (list.isEmpty())
+        if (list.isEmpty() || true)
             callShopListApi()
         else {
             /*if (AppDatabase.getDBInstance()?.productListDao()?.getAll()!!.isEmpty())
@@ -4626,6 +4643,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
     }
 
     private fun callShopListApi() {
+        Timber.d("tag_login_shop_status calling callShopListApi")
         println("xyz - getListFromDatabase end" + AppUtils.getCurrentDateTime());
         val repository = ShopListRepositoryProvider.provideShopListRepository()
         progress_wheel.spin()
@@ -5459,14 +5477,14 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
                                                 } else {
                                                     AppUtils.saveSharedPreferencesIsFaceDetectionWithCaptcha(this, false)
                                                 }
-                                            } else if (response.getconfigure!![i].Key.equals("IsScreenRecorderEnable", ignoreCase = true)) {
+                                            } /*else if (response.getconfigure!![i].Key.equals("IsScreenRecorderEnable", ignoreCase = true)) {
                                                 Pref.IsScreenRecorderEnable = response.getconfigure!![i].Value == "1"
                                                 if (Pref.IsScreenRecorderEnable) {
                                                     AppUtils.saveSharedPreferencesIsScreenRecorderEnable(this, true)
                                                 } else {
                                                     AppUtils.saveSharedPreferencesIsScreenRecorderEnable(this, false)
                                                 }
-                                            }
+                                            }*/
                                             //else if (response.getconfigure?.get(i)?.Key.equals("IsFromPortal", ignoreCase = true)) {
                                             else if (response.getconfigure?.get(i)?.Key.equals("IsDocRepoFromPortal", ignoreCase = true)) {
                                                 Pref.IsFromPortal = response.getconfigure!![i].Value == "1"
@@ -5904,6 +5922,36 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
                                                 if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
                                                     Pref.IsShowAttendanceSummary = response.getconfigure?.get(i)?.Value == "1"
                                                 }
+                                            }else if (response.getconfigure?.get(i)?.Key.equals("ShowUserwisePartyWithGeoFence", ignoreCase = true)) {
+                                                Pref.ShowUserwisePartyWithGeoFence = response.getconfigure!![i].Value == "1"
+                                                if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                                    Pref.ShowUserwisePartyWithGeoFence = response.getconfigure?.get(i)?.Value == "1"
+                                                }
+                                            }else if (response.getconfigure?.get(i)?.Key.equals("ShowUserwisePartyWithCreateOrder", ignoreCase = true)) {
+                                                Pref.ShowUserwisePartyWithCreateOrder = response.getconfigure!![i].Value == "1"
+                                                if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                                    Pref.ShowUserwisePartyWithCreateOrder = response.getconfigure?.get(i)?.Value == "1"
+                                                }
+                                            }else if (response.getconfigure?.get(i)?.Key.equals("IsRouteUpdateForShopUser", ignoreCase = true)) {
+                                                Pref.IsRouteUpdateForShopUser = response.getconfigure!![i].Value == "1"
+                                                if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                                    Pref.IsRouteUpdateForShopUser = response.getconfigure?.get(i)?.Value == "1"
+                                                }
+                                            }else if (response.getconfigure?.get(i)?.Key.equals("IsShowUserWiseDateWiseOrderInApp", ignoreCase = true)) {
+                                                Pref.IsShowUserWiseDateWiseOrderInApp = response.getconfigure!![i].Value == "1"
+                                                if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                                    Pref.IsShowUserWiseDateWiseOrderInApp = response.getconfigure?.get(i)?.Value == "1"
+                                                }
+                                            }else if (response.getconfigure?.get(i)?.Key.equals("IsOrderEditEnable", ignoreCase = true)) {
+                                                Pref.IsOrderEditEnable = response.getconfigure!![i].Value == "1"
+                                                if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                                    Pref.IsOrderEditEnable = response.getconfigure?.get(i)?.Value == "1"
+                                                }
+                                            }else if (response.getconfigure?.get(i)?.Key.equals("IsOrderDeleteEnable", ignoreCase = true)) {
+                                                Pref.IsOrderDeleteEnable = response.getconfigure!![i].Value == "1"
+                                                if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                                    Pref.IsOrderDeleteEnable = response.getconfigure?.get(i)?.Value == "1"
+                                                }
                                             }
 
                                             /*else if (response.getconfigure?.get(i)?.Key.equals("isFingerPrintMandatoryForAttendance", ignoreCase = true)) {
@@ -6027,6 +6075,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
     }
 
     private fun convertToShopListSetAdapter(shop_list: List<ShopData>) {
+        AppDatabase.getDBInstance()!!.addShopEntryDao().deleteShopAll()
         val list: MutableList<AddShopDBModelEntity> = ArrayList()
 
         for (i in 0 until shop_list.size) {
@@ -6449,7 +6498,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
 // Revision 2.0   Suman App V4.4.6  04-04-2024  mantis id 27291: New Order Module api implement & room insertion begin
 
     private fun getNewProductList() {
-        if(Pref.ShowPartyWithCreateOrder){
+        if(Pref.ShowPartyWithCreateOrder && Pref.ShowUserwisePartyWithCreateOrder){
             progress_wheel.spin()
             val repository = ProductListRepoProvider.productListProvider()
             BaseActivity.compositeDisposable.add(
@@ -6488,7 +6537,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
     }
 
     private fun getNewProductRateList() {
-        if(Pref.ShowPartyWithCreateOrder){
+        if(Pref.ShowPartyWithCreateOrder && Pref.ShowUserwisePartyWithCreateOrder){
             progress_wheel.spin()
             val repository = ProductListRepoProvider.productListProvider()
             BaseActivity.compositeDisposable.add(
@@ -6530,7 +6579,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
 
     private fun getOrderHistoryList(){
         var ordHisL = AppDatabase.getDBInstance()!!.newOrderDataDao().getAllOrder() as ArrayList<NewOrderDataEntity>
-        if(Pref.ShowPartyWithCreateOrder && ordHisL.size==0){
+        if(Pref.ShowPartyWithCreateOrder && ordHisL.size==0 && Pref.ShowUserwisePartyWithCreateOrder){
             Timber.d("getOrderHistoryList call")
             progress_wheel.spin()
             val repository = ProductListRepoProvider.productListProvider()
@@ -6544,38 +6593,53 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
                             doAsync {
                                 Timber.d("getOrderHistoryList data save begin ${AppUtils.getCurrentDateTime()}")
                                 var order_list = response.order_list
-                                for(i in 0..order_list.size-1){
-                                    var obj = NewOrderDataEntity()
-                                    obj.order_id = order_list.get(i).order_id
-                                    obj.order_date = order_list.get(i).order_date
-                                    obj.order_time = order_list.get(i).order_time
-                                    obj.order_date_time = order_list.get(i).order_date_time
-                                    obj.shop_id = order_list.get(i).shop_id
-                                    obj.shop_name = order_list.get(i).shop_name
-                                    obj.shop_type = order_list.get(i).shop_type
-                                    obj.isInrange = order_list.get(i).isInrange
-                                    obj.order_lat = order_list.get(i).order_lat
-                                    obj.order_long = order_list.get(i).order_long
-                                    obj.shop_addr = order_list.get(i).shop_addr
-                                    obj.shop_pincode = order_list.get(i).shop_pincode
-                                    obj.order_total_amt = order_list.get(i).order_total_amt.toString()
-                                    obj.order_remarks = order_list.get(i).order_remarks
-                                    obj.isUploaded = true
+                                try {
+                                    for(i in 0..order_list.size-1){
+                                        var obj = NewOrderDataEntity()
+                                        obj.order_id = order_list.get(i).order_id
+                                        obj.order_date = order_list.get(i).order_date
+                                        obj.order_time = order_list.get(i).order_time
+                                        obj.order_date_time = order_list.get(i).order_date_time.replace("T"," ")
+                                        obj.shop_id = order_list.get(i).shop_id
+                                        obj.shop_name = order_list.get(i).shop_name
+                                        obj.shop_type = order_list.get(i).shop_type
+                                        obj.isInrange = order_list.get(i).isInrange
+                                        obj.order_lat = order_list.get(i).order_lat
+                                        obj.order_long = order_list.get(i).order_long
+                                        obj.shop_addr = order_list.get(i).shop_addr
+                                        obj.shop_pincode = order_list.get(i).shop_pincode
+                                        obj.order_total_amt = String.format("%.02f",order_list.get(i).order_total_amt.toBigDecimal()).toString()
+                                        obj.order_remarks = order_list.get(i).order_remarks
+                                        obj.isUploaded = true
+                                        obj.order_edit_remarks = order_list.get(i).order_edit_remarks
+                                        obj.order_edit_date_time = order_list.get(i).order_edit_date_time.replace("T"," ")
+                                        obj.isEdited = false
 
-                                    var objProductL:ArrayList<NewOrderProductEntity> = ArrayList()
-                                    for( j in 0..order_list.get(i).product_list.size-1){
-                                        var objProduct = NewOrderProductEntity()
-                                        objProduct.order_id = order_list.get(i).product_list.get(j).order_id
-                                        objProduct.product_id = order_list.get(i).product_list.get(j).product_id
-                                        objProduct.product_name = order_list.get(i).product_list.get(j).product_name
-                                        objProduct.submitedQty = order_list.get(i).product_list.get(j).submitedQty.toInt().toString()
-                                        objProduct.submitedSpecialRate = order_list.get(i).product_list.get(j).submitedSpecialRate.toString()
-                                        objProductL.add(objProduct)
+                                        var objProductL:ArrayList<NewOrderProductEntity> = ArrayList()
+                                        for( j in 0..order_list.get(i).product_list.size-1){
+                                            var objProduct = NewOrderProductEntity()
+                                            objProduct.order_id = order_list.get(i).product_list.get(j).order_id
+                                            objProduct.product_id = order_list.get(i).product_list.get(j).product_id
+                                            objProduct.product_name = order_list.get(i).product_list.get(j).product_name
+                                            objProduct.submitedQty = order_list.get(i).product_list.get(j).submitedQty.toInt().toString()
+                                            objProduct.submitedSpecialRate = order_list.get(i).product_list.get(j).submitedSpecialRate.toString()
+                                            objProduct.shop_id = order_list.get(i).shop_id
+
+                                            objProduct.total_amt = order_list.get(i).product_list.get(j).total_amt.toString()
+                                            objProduct.mrp = order_list.get(i).product_list.get(j).mrp.toString()
+                                            objProduct.itemPrice = order_list.get(i).product_list.get(j).itemPrice.toString()
+
+                                            objProductL.add(objProduct)
+                                        }
+
+                                        AppDatabase.getDBInstance()!!.newOrderDataDao().insert(obj)
+                                        AppDatabase.getDBInstance()!!.newOrderProductDao().insertAll(objProductL)
+
+                                        AppDatabase.getDBInstance()!!.newOrderDataDao().updateGarbageEditDateTime()
+
                                     }
-
-                                    AppDatabase.getDBInstance()!!.newOrderDataDao().insert(obj)
-                                    AppDatabase.getDBInstance()!!.newOrderProductDao().insertAll(objProductL)
-
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
                                 }
                                 uiThread {
                                     Timber.d("getOrderHistoryList data save end ${AppUtils.getCurrentDateTime()}")
@@ -6604,6 +6668,8 @@ class LoginActivity : BaseActivity(), View.OnClickListener, LocationListener {
 
 
     private fun gotoHomeActivity() {
+        //hardcoded
+        Pref.isSeenTermsConditions = true
         login_TV.isEnabled = true
         progress_wheel.stopSpinning()
         setServiceAlarm(this, 1, 123)
