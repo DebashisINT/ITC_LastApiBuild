@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.breezedsm.app.AppConstant
 
+
 @Entity(tableName = AppConstant.NEW_ORDER_DATA)
 data class NewOrderDataEntity (
     @PrimaryKey(autoGenerate = true) var sl_no: Int = 0,
