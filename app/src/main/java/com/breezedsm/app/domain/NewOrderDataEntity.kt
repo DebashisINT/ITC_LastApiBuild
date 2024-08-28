@@ -2,9 +2,9 @@ package com.breezedsm.app.domain
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.breezedsm.app.AppConstant
-
 
 @Entity(tableName = AppConstant.NEW_ORDER_DATA)
 data class NewOrderDataEntity (
@@ -16,7 +16,7 @@ data class NewOrderDataEntity (
     @ColumnInfo var shop_id:String = "",
     @ColumnInfo var shop_name:String = "",
     @ColumnInfo var shop_type:String = "",
-    @ColumnInfo var isInrange:Int = 0,
+    @ColumnInfo  var isInrange:Int = 0,
     @ColumnInfo var order_lat:String = "",
     @ColumnInfo var order_long:String = "",
     @ColumnInfo var shop_addr:String = "",

@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
@@ -27,6 +28,7 @@ import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.breezedsm.MonitorBroadcast
 import com.breezedsm.R
@@ -197,7 +199,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
         this.sendBroadcast(i)
     }
 
-    @SuppressLint("InvalidWakeLockTag")
+    @SuppressLint("InvalidWakeLockTag", "NewApi")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -266,7 +268,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
 
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channelId = AppUtils.notificationChannelId
+                /*val channelId = AppUtils.notificationChannelId
 
                 val channelName = AppUtils.notificationChannelName
                 val importance = NotificationManager.IMPORTANCE_HIGH
@@ -292,7 +294,34 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
                 //notificationManager.notify(randInt, notificationBuilder.build());
 
                 //20-10-2021
-                startForeground(AppConstant.FOREGROUND_SERVICE, notification)
+                startForeground(AppConstant.FOREGROUND_SERVICE, notification)*/
+
+                //new test code
+                var channelIDd = AppUtils.notificationChannelId
+                var channelNamee = AppUtils.notificationChannelName
+                val importancee = NotificationManager.IMPORTANCE_HIGH
+                val notiManagerr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if(notiManagerr.getNotificationChannel(channelIDd) == null){
+                    val notiChannell = NotificationChannel(channelIDd, channelNamee, importancee).apply {
+                        enableLights(true)
+                        lightColor = applicationContext.getColor(R.color.colorPrimary)
+                        enableVibration(true)
+                        lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                    }
+                    notiManagerr.createNotificationChannel(notiChannell)
+                }
+
+                val notificationn = NotificationCompat.Builder(this, channelIDd)
+                    .setContentTitle(notificationTitle)
+                    .setTicker("")
+                    .setContentText("")
+                    .setSmallIcon(R.drawable.ic_notifications_icon)
+                    .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
+                    .setContentIntent(pendingIntent)
+                    .setOngoing(true)
+                    .build()
+                //startForeground(AppConstant.FOREGROUND_SERVICE, notificationn, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+                startForeground(AppConstant.FOREGROUND_SERVICE, notificationn)
 
             } else {
                 val notification = NotificationCompat.Builder(this)
@@ -533,7 +562,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
     @SuppressLint("MissingPermission")
     override fun onConnected(@Nullable bundle: Bundle?) {
         Log.e(TAG, "onConnected: ")
-        val lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleAPIClient)
+        val lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleAPIClient!!)
         if (lastLocation != null && lastLocation.latitude != null && lastLocation.latitude != 0.0) {
             AppUtils.mLocation = lastLocation
             Pref.current_latitude = lastLocation.latitude.toString()
@@ -550,7 +579,7 @@ class LocationFuzedService : Service(), GoogleApiClient.ConnectionCallbacks, Goo
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleAPIClient, mLocationRequest, this) //getting error here..for casting..!
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleAPIClient!!, mLocationRequest!!, this) //getting error here..for casting..!
 
     }
 

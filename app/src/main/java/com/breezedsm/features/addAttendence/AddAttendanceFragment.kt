@@ -393,13 +393,36 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
        // faceDetectorSetUp()
     }
 
-    override fun onMapReady(googleMap: GoogleMap?) {
+    /*override fun onMapReady(googleMap: GoogleMap?) {
         mGoogleMap = googleMap
         mGoogleMap?.uiSettings?.isZoomControlsEnabled = true
 
         if (!TextUtils.isEmpty(Pref.current_latitude) && !TextUtils.isEmpty(Pref.current_longitude)) {
             mGoogleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(Pref.current_latitude.toDouble(),
                     Pref.current_longitude.toDouble()), 15f))
+
+            val latLng = LatLng(Pref.current_latitude.toDouble(), Pref.current_longitude.toDouble())
+            val markerOptions = MarkerOptions()
+
+            markerOptions.also {
+                it.position(latLng)
+                *//*it.title(locationName)
+                it.snippet(locationName)*//*
+                it.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                mGoogleMap?.addMarker(it)!!
+            }
+
+            tv_address.text = LocationWizard.getLocationName(mContext, Pref.current_latitude.toDouble(), Pref.current_longitude.toDouble())
+        }
+    }*/
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        mGoogleMap = googleMap
+        mGoogleMap?.uiSettings?.isZoomControlsEnabled = true
+
+        if (!TextUtils.isEmpty(Pref.current_latitude) && !TextUtils.isEmpty(Pref.current_longitude)) {
+            mGoogleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(Pref.current_latitude.toDouble(),
+                Pref.current_longitude.toDouble()), 15f))
 
             val latLng = LatLng(Pref.current_latitude.toDouble(), Pref.current_longitude.toDouble())
             val markerOptions = MarkerOptions()
@@ -414,8 +437,8 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
 
             tv_address.text = LocationWizard.getLocationName(mContext, Pref.current_latitude.toDouble(), Pref.current_longitude.toDouble())
         }
-    }
 
+    }
 
     private var selectedRoute = ArrayList<RouteEntity>()
     private var routeID = ""
@@ -1059,7 +1082,9 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 171) {
+            Timber.d("171 received")
             if (resultCode == Activity.RESULT_OK) {
+                Timber.d("171 received RESULT_OK")
                 CustomStatic.FaceDetectionAccuracyLower=Pref.FaceDetectionAccuracyLower
                 CustomStatic.FaceDetectionAccuracyUpper=Pref.FaceDetectionAccuracyUpper
                 if (data != null) {
@@ -1075,11 +1100,14 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
                         }else{
                             //31-08-2021
                             BaseActivity.isApiInitiated=true
-
+                            Timber.d("171 received RESULT_OK calling prepareAddAttendanceInputParams")
                             prepareAddAttendanceInputParams()
                         }
+                    }else{
+                        Timber.d("171 received RESULT_OK face not match")
                     }
-
+                }else{
+                    Timber.d("171 received RESULT_OK null")
                 }
             }
         }
@@ -1723,7 +1751,7 @@ class AddAttendanceFragment : Fragment(), View.OnClickListener, DatePickerDialog
 
     }
 
-
+    @SuppressLint("UseRequireInsteadOfGet")
     private fun showAreaDialog(isFromLoc: Boolean) {
         LocationListDialog.newInstance(loc_list) {
             if (isFromLoc) {
